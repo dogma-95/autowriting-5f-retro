@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>오토라이팅 & 3F/5F 회고 — 제품 구조</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #fafaf9;
+    --fg: #18181b;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --accent-soft: #eff6ff;
+    --warn: #b45309;
+    --warn-soft: #fef3c7;
+    --ok: #15803d;
+    --ok-soft: #dcfce7;
+    --code-bg: #f4f4f5;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    letter-spacing: -0.01em;
+  }
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+  header.intro {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 28px;
+    margin-bottom: 48px;
+  }
+  header.intro .eyebrow {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  header.intro h1 {
+    margin: 0 0 12px;
+    font-size: 32px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  header.intro p.sub {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 620px;
+  }
+  header.intro .meta {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  header.intro .meta a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  header.intro .meta a:hover { text-decoration: underline; }
+
+  section.block {
+    margin-bottom: 56px;
+  }
+  section.block .num {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  section.block h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    letter-spacing: -0.015em;
+  }
+  section.block p.lede {
+    margin: 0 0 20px;
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 640px;
+  }
+
+  .diagram {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    overflow-x: auto;
+  }
+  .diagram .mermaid {
+    text-align: center;
+    min-height: 80px;
+  }
+
+  /* Mermaid 폴백 — CDN 안 열릴 때 mermaid 코드 자체가 보임 */
+  .diagram .mermaid:not([data-processed="true"]) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: left;
+    background: var(--code-bg);
+    padding: 14px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .legend .item { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .sw {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    border: 1px solid var(--line);
+  }
+
+  .twocol {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 720px) {
+    .twocol { grid-template-columns: 1fr; }
+    header.intro h1 { font-size: 26px; }
+  }
+
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+    background: white;
+  }
+  .card h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  .card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .card .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+    background: var(--code-bg);
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .note {
+    margin-top: 20px;
+    padding: 14px 16px;
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+  }
+  .note.warn {
+    border-left-color: var(--warn);
+    background: var(--warn-soft);
+  }
+  .note strong { font-weight: 600; }
+
+  .future-block {
+    margin-top: 8px;
+    border: 2px dashed var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    background: white;
+  }
+  .future-block .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--warn-soft);
+    color: var(--warn);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  footer p { margin: 0 0 6px; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Mermaid svg 가독성 */
+  .mermaid svg { max-width: 100% !important; height: auto !important; }
+</style>
+</head>
+<body>
+<main>
+
+<header class="intro">
+  <div class="eyebrow">PRODUCT MAP · v1.0</div>
+  <h1>오토라이팅 & 3F/5F 회고</h1>
+  <p class="sub">머릿속에 얽힌 생각과 감정을 검열 없이 꺼내고, Fact / Feeling / Finding으로 디코딩해서 작은 다음 행동으로 연결하는 셀프코칭 시스템. 이 문서는 v1 제품 구조 전체를 한눈에 보이게 정리한다.</p>
+  <div class="meta">
+    <span>버전: v1.0.0</span>
+    <span>업데이트: 2026-05-17</span>
+    <span>저장소: <a href="https://github.com/dogma-95/autowriting-5f-retro">dogma-95/autowriting-5f-retro</a></span>
+    <span>라이선스: CC BY 4.0</span>
+  </div>
+</header>
+
+<!-- ─────────────────────────────────────────────────────────────── -->
+<section class="block">
+  <div class="num">01 · 데일리 흐름</div>
+  <h2>평일에 일어나는 한 사이클</h2>
+  <p class="lede">캘린더 알림에서 시작해 "3F로 닫기" 또는 "5F까지" 분기로 끝나는 한 번의 운영 사이클. <strong>분기 질문이 이 시스템의 핵심</strong>: 매일 모든 기록을 행동으로 끌고 갈 필요가 없다.</p>
+  <div class="diagram">
+<div class="mermaid">
+flowchart TD
+  start([캘린더 알림 / 마지막 회의 직후]):::trigger
+  start --> a["사용자: '오토라이팅 시작' 입력"]
+  a --> b["AI: 시작 문장 3개 + 막혔을 때 이어갈 문장 제안"]
+  b --> c[["10~30분 자유 기록 (검열 없음)"]]
+  c --> d["사용자: '3F 정리' + 원문 붙여넣기"]
+  d --> e["AI: Fact / Feeling / Finding 분리<br/>Feeling은 구체적 감정 단어로 라벨링"]
+  e --> q{{"AI 분기 질문:<br/>'3F로 닫을까요, 5F까지 갈까요?'"}}:::pivot
+  q -- "소화 목적" --> close3f["'3F로 닫기'<br/>→ 핵심 문장 1개 + 관찰 포인트 1개"]:::close
+  q -- "전환 목적" --> exp5f["'5F까지'<br/>→ Future Action 1~3개 (가장 작은 행동)"]
+  exp5f --> fb["→ Feedback (이전 액션 있을 때만)"]
+  close3f --> done(["소화 완료<br/>(미완료 아님)"]):::done
+  fb --> done
+
+  classDef trigger fill:#eff6ff,stroke:#2563eb,color:#1e3a8a;
+  classDef pivot fill:#fef3c7,stroke:#b45309,color:#78350f;
+  classDef close fill:#dcfce7,stroke:#15803d,color:#14532d;
+  classDef done fill:#f4f4f5,stroke:#6b7280,color:#27272a;
+</div>
+  </div>
+  <div class="legend">
+    <span class="item"><span class="sw" style="background:#eff6ff;border-color:#2563eb"></span>트리거</span>
+    <span class="item"><span class="sw" style="background:#fef3c7;border-color:#b45309"></span>분기 질문</span>
+    <span class="item"><span class="sw" style="background:#dcfce7;border-color:#15803d"></span>3F 닫기</span>
+    <span class="item"><span class="sw" style="background:#f4f4f5;border-color:#6b7280"></span>완료 상태</span>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────── -->
+<section class="block">
+  <div class="num">02 · 운영 리듬</div>
+  <h2>일 → 주 → 월의 누적 사이클</h2>
+  <p class="lede">데일리 기록이 주말 디코딩의 입력이 되고, 주말 디코딩이 월간 리뷰의 입력이 된다. <strong>월간 리뷰는 데일리 원문을 다시 읽지 않는다</strong> — 주간 디코딩만 본다.</p>
+  <div class="diagram">
+<div class="mermaid">
+flowchart LR
+  d1[월]:::day --> d2[화]:::day --> d3[수]:::day --> d4[목]:::day --> d5[금]:::day
+  d5 --> week["주말 디코딩<br/>반복 문제·감정·자원<br/>다음 주 Future Action 1~3개"]:::week
+  week --> nextweek[다음 주 월요일]:::day
+  week --> monthly["월간 리뷰<br/>(주간 디코딩 모음 기반)<br/>분기 미션·감정 패턴·자원·실험 3개"]:::month
+
+  classDef day fill:#fafaf9,stroke:#e5e7eb,color:#27272a;
+  classDef week fill:#eff6ff,stroke:#2563eb,color:#1e3a8a;
+  classDef month fill:#fef3c7,stroke:#b45309,color:#78350f;
+</div>
+  </div>
+  <div class="note">
+    <strong>핵심 룰:</strong> 다음 주 Future Action은 <strong>1~3개로 제한</strong>. 많을수록 실행되지 않는다.
+    월간 리뷰의 다음 달 실험도 <strong>3개로 제한</strong>.
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────── -->
+<section class="block">
+  <div class="num">03 · 시스템 컴포넌트</div>
+  <h2>사용자 → AI 도구 → 패키지 콘텐츠</h2>
+  <p class="lede">단일 출처는 <code>docs/</code>. 플랫폼 폴더는 각자 형식으로 재단된 시스템 프롬프트와 셋업 가이드. 기록 저장소(Obsidian/Notion)는 선택이지만 권장.</p>
+  <div class="diagram">
+<div class="mermaid">
+flowchart TB
+  user(("사용자")):::user
+
+  subgraph tools["AI 도구 (택1)"]
+    direction LR
+    claude["Claude Projects"]
+    chatgpt["ChatGPT Projects"]
+    gemini["Gemini Gems"]
+  end
+
+  subgraph pkg["autowriting-5f-retro 패키지"]
+    direction TB
+    docs["docs/<br/>methodology · emotion-words<br/>templates · faq"]:::pkgcore
+    platforms["platforms/{tool}/<br/>system-prompt + README + knowledge-files"]:::pkgcore
+    prompts["prompts/<br/>9개 짧은 명령어"]
+    templates["templates/<br/>8개 템플릿"]
+    calendar["calendar/<br/>평일·주말·월말 문구"]
+  end
+
+  storage[("기록 저장소 (선택)<br/>Obsidian · Notion · Google Docs")]:::storage
+
+  user -->|"선택"| tools
+  pkg -->|"시스템 프롬프트 주입"| tools
+  docs -->|"단일 출처 → 사본"| platforms
+  user <-->|"대화 + 결과"| tools
+  user -->|"결과 복붙<br/>(주말·월간 입력)"| storage
+  storage -.->|"누적 자료<br/>첨부"| tools
+
+  classDef user fill:#2563eb,color:white,stroke:#1e40af;
+  classDef pkgcore fill:#eff6ff,stroke:#2563eb,color:#1e3a8a;
+  classDef storage fill:#fef3c7,stroke:#b45309,color:#78350f;
+</div>
+  </div>
+
+  <div class="twocol" style="margin-top:20px">
+    <div class="card">
+      <span class="badge">CLAUDE</span>
+      <h3>자연어 트리거 + Artifact</h3>
+      <p>"오토라이팅 시작" 외에 "시작하자", "오늘 머릿속 꺼내고 싶어" 등 동의어 인식. 3F/5F 결과를 Artifact로 분리 출력 → 복붙해서 Obsidian/Notion으로 옮기기 좋음.</p>
+    </div>
+    <div class="card">
+      <span class="badge">CHATGPT</span>
+      <h3>검증된 베이스라인</h3>
+      <p>원본 04 파일 지침 거의 그대로. 짧은 명령어 처리에 가장 정확. 파일 업로드 풍부. 한국어 자연스러움 양호.</p>
+    </div>
+    <div class="card">
+      <span class="badge">GEMINI</span>
+      <h3>인라인 압축 + Workspace</h3>
+      <p>Gem 영구 첨부가 제한적이라 핵심 콘텐츠(3F/5F 정의·감정 6 카테고리·분기 기준)를 시스템 프롬프트에 인라인. Google Docs로 결과 저장 자연스러움.</p>
+    </div>
+    <div class="card">
+      <span class="badge">선택</span>
+      <h3>저장소는 필수에 가깝다</h3>
+      <p>AI 대화는 검색·정렬이 약해서 주말·월간 누적이 어렵다. <strong>Obsidian 또는 Notion에 매일 결과를 옮기는 흐름이 권장</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────── -->
+<section class="block">
+  <div class="num">04 · 3F vs 5F 결정 로직</div>
+  <h2>오늘 어디까지 갈 것인가</h2>
+  <p class="lede">매일의 분기 질문 안에 숨은 결정 트리. 기준 문장: <strong>"소화가 목적이면 3F, 전환이 목적이면 5F."</strong></p>
+  <div class="diagram">
+<div class="mermaid">
+flowchart TD
+  q1{{"오늘의 상태는?"}}:::root
+  q1 --> tired["감정이 크고 피곤"]:::cond
+  q1 --> blur["문제가 흐릿, 더 관찰 필요"]:::cond
+  q1 --> rep["반복되는 문제 보임"]:::cond
+  q1 --> next["다음 대화/회의 준비 필요"]:::cond
+  q1 --> act["지금 할 수 있는 행동 떠오름"]:::cond
+
+  tired --> dec3f["→ 3F로 닫기<br/>핵심 문장 1 + 관찰 포인트 1"]:::r3
+  blur --> dec3f
+  rep --> dec5f["→ 5F까지 확장<br/>Future Action 1~3개"]:::r5
+  next --> dec5f
+  act --> dec5f
+
+  dec3f --> motto(["소화 완료"]):::done
+  dec5f --> motto
+
+  classDef root fill:#fef3c7,stroke:#b45309,color:#78350f;
+  classDef cond fill:#fafaf9,stroke:#e5e7eb,color:#27272a;
+  classDef r3 fill:#dcfce7,stroke:#15803d,color:#14532d;
+  classDef r5 fill:#eff6ff,stroke:#2563eb,color:#1e3a8a;
+  classDef done fill:#f4f4f5,stroke:#6b7280,color:#27272a;
+</div>
+  </div>
+  <div class="note warn">
+    <strong>흔한 오해:</strong> 3F로 닫으면 미완성처럼 느껴짐. 실제로는 <strong>"소화 완료"</strong>. 모든 기록이 행동으로 이어질 필요는 없다.
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────── -->
+<section class="block">
+  <div class="num">05 · 개념 흐름</div>
+  <h2>Fact → Feeling → Finding → (선택) Future Action → Feedback</h2>
+  <p class="lede">각 단계는 분리되어야 의미가 산다. Fact와 Feeling이 섞이면 Finding이 안 나오고, Finding 없이 Future Action으로 가면 거창한 계획만 나온다.</p>
+  <div class="diagram">
+<div class="mermaid">
+flowchart LR
+  f1["1F · Fact<br/><i>실제로 있었던 일</i><br/>관찰 가능한 사건·말·장면"]:::s1
+  f2["2F · Feeling<br/><i>그때 느낀 감정</i><br/>구체적 단어로 라벨링"]:::s2
+  f3["3F · Finding<br/><i>분리하면 보이는 것</i><br/>패턴 · 통제 가능성 · 자원"]:::s3
+  branch{{"분기"}}:::pivot
+  f4["4F · Future Action<br/><i>가장 작은 행동 1~3개</i><br/>통제 범위 안에서만"]:::s4
+  f5["5F · Feedback<br/><i>학습 루프</i><br/>실행 후 무엇이 달라졌나"]:::s5
+
+  f1 --> f2 --> f3 --> branch
+  branch -.소화 목적.-> end1((마무리)):::endnode
+  branch -.전환 목적.-> f4 --> f5 --> end2((실행 후 다음 사이클로)):::endnode
+
+  classDef s1 fill:#fff,stroke:#2563eb,color:#1e3a8a;
+  classDef s2 fill:#fff,stroke:#2563eb,color:#1e3a8a;
+  classDef s3 fill:#fff,stroke:#2563eb,color:#1e3a8a;
+  classDef pivot fill:#fef3c7,stroke:#b45309,color:#78350f;
+  classDef s4 fill:#eff6ff,stroke:#2563eb,color:#1e3a8a;
+  classDef s5 fill:#eff6ff,stroke:#2563eb,color:#1e3a8a;
+  classDef endnode fill:#f4f4f5,stroke:#6b7280,color:#27272a;
+</div>
+  </div>
+
+  <div class="twocol" style="margin-top:20px">
+    <div class="card">
+      <h3>Feeling의 라벨링 6 카테고리</h3>
+      <p>욕구 충족: 편안함·기쁨·감사·자신감·만족<br/>욕구 불충족: 불안·답답함·피로·슬픔·화·혼란·관계적 어려움<br/><strong>큰 단어("힘들다")에서 한 단계 더 구체적으로</strong>.</p>
+    </div>
+    <div class="card">
+      <h3>관점 전환 도구 (감정 강한 날)</h3>
+      <p>벽에 붙은 파리 시점 · 옆 동료 시점 · 1년 뒤의 나 시점.<br/>판단이 아니라 <strong>객관화를 위한 장치</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────── -->
+<section class="block">
+  <div class="num">06 · 확장 개념 (실험적)</div>
+  <h2>self-pattern-card — AI를 "1년차 코치"로 만들기</h2>
+  <p class="lede">현재 시스템의 가장 큰 한계는 <strong>AI가 사용자를 기억하지 못한다는 점</strong>. 매번 처음 만나는 코치. 이 한계를 메우는 가벼운 해결책이 사용자의 반복 패턴과 가치관을 담은 단일 마크다운 파일을 휴대하는 것이다. 패키지의 공식 기능은 아니지만, Project 지식 파일로 첨부해서 도입할 수 있는 사용자 패턴으로 소개한다.</p>
+
+  <div class="future-block">
+    <span class="tag">실험적 패턴 · 사용자 선택</span>
+<div class="diagram" style="border:none;padding:0;">
+<div class="mermaid">
+flowchart LR
+  card[/"self-pattern-card.md<br/><br/>· 반복 감정<br/>· 회피 영역<br/>· 가치관 · 결정 원칙<br/>· 장기 미션<br/>· 가진 자원<br/>· 진행 중인 실험"/]:::card
+  ai[("AI (Claude/ChatGPT/Gemini)")]:::ai
+
+  card -->|"매 대화 시작 시 첨부"| ai
+  ai -->|"3F 정리 시 → 이번 Feeling이 N번째 반복"| u1((코칭 깊이 1))
+  ai -->|"5F 시 → 가치관 점검"| u2((코칭 깊이 2))
+  ai -->|"월간 리뷰 시 → 장기 미션 진전"| u3((코칭 깊이 3))
+  ai -->|"분기 회고 시 → 카드 갱신 제안"| u4((코칭 깊이 4))
+
+  classDef card fill:#fef3c7,stroke:#b45309,color:#78350f;
+  classDef ai fill:#2563eb,color:white,stroke:#1e40af;
+</div>
+</div>
+
+    <div class="twocol" style="margin-top:20px">
+      <div class="card">
+        <span class="badge">카드에 무엇을 담는가</span>
+        <h3>6 카테고리</h3>
+        <p>
+          1. 반복 감정 (지난 1~3개월 자주 등장 + 맥락)<br/>
+          2. 회피 영역 (의도적 / 무의식 표시)<br/>
+          3. 가치관 · 결정 원칙 (5개 이내 권장)<br/>
+          4. 장기 미션 (분기·반기·연 단위)<br/>
+          5. 이미 가진 자원 (강점·신뢰 자산)<br/>
+          6. 진행 중인 실험 (지난 주 Future Action)
+        </p>
+      </div>
+      <div class="card">
+        <span class="badge">어떻게 도입하나</span>
+        <h3>3단계</h3>
+        <p>
+          1. 본인의 기록 저장소(Obsidian / Notion / 메모 앱)에 마크다운 파일로 만든다<br/>
+          2. 6 카테고리를 거칠게 30분 안에 채운다 — 완벽 X, 초안 OK<br/>
+          3. 본인이 쓰는 AI 도구의 Project 지식 파일에 업로드하거나, 매 대화 시작 시 첨부한다
+        </p>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:16px">
+      <strong>운영 룰:</strong> 카드는 주말 디코딩 직후 1주 1회 갱신한다.
+      카드를 첨부하면 AI는 매 응답에서 본인의 반복 패턴·가치관·장기 미션을 참조한다 — 매번 처음 만나는 코치에서 본인을 1년 본 코치로의 전환.
+      <br/><br/>
+      <strong>주의:</strong> 운영 자체가 부담이 되면 즉시 줄인다. 이 시스템의 원칙은 "기록을 또 하나의 과업으로 만들지 않는다"이고, 카드도 같은 원칙을 따른다. 부담이면 카테고리 2~3개로 줄이거나 빼도 된다.
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────── -->
+<footer>
+  <p><strong>소스</strong>: 본 다이어그램은 <code>package/</code>의 v1 콘텐츠와 <code>.context/plan.md</code>의 CEO 리뷰 결과를 기준으로 생성.</p>
+  <p><strong>저장소</strong>: <a href="https://github.com/dogma-95/autowriting-5f-retro">github.com/dogma-95/autowriting-5f-retro</a> · <strong>라이선스</strong>: CC BY 4.0 · <strong>만든 사람</strong>: dogma-95</p>
+  <p><strong>다이어그램 도구</strong>: Mermaid.js (CDN). 오프라인에서 다이어그램이 안 보이면 페이지 소스의 mermaid 코드 블록이 텍스트 폴백으로 표시됨.</p>
+</footer>
+
+</main>
+
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
+        fontSize: '14px',
+        primaryColor: '#eff6ff',
+        primaryTextColor: '#1e3a8a',
+        primaryBorderColor: '#2563eb',
+        lineColor: '#6b7280',
+        secondaryColor: '#fef3c7',
+        tertiaryColor: '#fafaf9'
+      },
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+      },
+      securityLevel: 'loose'
+    });
+  }
+</script>
+
+</body>
+</html>

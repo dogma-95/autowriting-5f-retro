@@ -21,6 +21,10 @@
 - **ChatGPT**: 짧은 명령어("오토라이팅 시작", "3F 정리" 등) + 파일 업로드 워크플로우
 - **Gemini**: 핵심 콘텐츠 인라인 압축 + Google Workspace(Docs / Drive / Calendar) 연동
 
+## 한눈에 보는 제품 구조
+
+📊 [product-map.html](docs/product-map.html) — 데일리 흐름, 운영 리듬, 시스템 컴포넌트, 3F/5F 분기, 개념 흐름, 확장 개념까지 한 페이지 시각화. 저장소에서 raw 파일을 다운로드해 브라우저로 열면 인터랙티브 다이어그램이 보입니다.
+
 ## 방법론을 먼저 읽고 싶다면
 
 - 본문: [docs/methodology.md](docs/methodology.md)
@@ -61,7 +65,8 @@
 │   ├── methodology.md
 │   ├── emotion-words.md
 │   ├── templates.md
-│   └── faq.md
+│   ├── faq.md
+│   └── product-map.html     # 제품 구조 시각화 (브라우저에서 열기)
 ├── platforms/               # 플랫폼별 셋업
 │   ├── claude/
 │   ├── chatgpt/
