@@ -1,5 +1,9 @@
 # 오토라이팅 & 3F/5F 회고
 
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+[![GitHub release](https://img.shields.io/github/v/release/dogma-95/autowriting-5f-retro)](https://github.com/dogma-95/autowriting-5f-retro/releases)
+[![Korean](https://img.shields.io/badge/lang-한국어-orange.svg)](README.md)
+
 머릿속에 얽힌 생각과 감정을 검열 없이 꺼내고,
 **Fact / Feeling / Finding** 으로 디코딩해서 작은 다음 행동으로 연결하는 셀프코칭 시스템.
 
